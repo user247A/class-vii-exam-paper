@@ -5,59 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Publisher</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f5f6fa;
-      margin: 0;
-      padding: 20px;
-      color: #2f3640;
-    }
-    h1 {
-      text-align: center;
-      color: #273c75;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      border-radius: 8px;
-    }
-    input[type="text"],
-    input[type="file"] {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background: #44bd32;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #4cd137;
-    }
-    .doc {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      background: #f1f2f6;
-      margin: 10px 0;
-      border-radius: 4px;
-    }
-    .doc span {
-      font-weight: bold;
-    }
-    .doc button {
-      background: #e84118;
-    }
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f6fa; margin: 0; padding: 20px; color: #2f3640; }
+    h1 { text-align: center; color: #273c75; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 8px; }
+    input[type="text"], input[type="file"] { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ccc; }
+    button { background: #44bd32; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #4cd137; }
+    .doc { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f1f2f6; margin: 10px 0; border-radius: 4px; }
+    .doc span { font-weight: bold; }
+    .doc button { background: #e84118; }
   </style>
 </head>
 <body>
@@ -71,6 +27,8 @@
   </div>
 
   <script>
+    const baseURL = 'https://class-vii-exam-paper.onrender.com';
+
     async function uploadDoc() {
       const header = document.getElementById('header').value;
       const file = document.getElementById('fileInput').files[0];
@@ -81,31 +39,27 @@
       formData.append('file', file);
 
       try {
-        const res = await fetch('https://class-vii-exam-paper.onrender.com/publish', {
-          method: 'POST',
-          body: formData,
-        });
-
+        const res = await fetch(`${baseURL}/publish`, { method: 'POST', body: formData });
         const contentType = res.headers.get("content-type");
+
         if (contentType && contentType.includes("application/json")) {
           const data = await res.json();
           alert(data.message || data.error);
+          fetchDocs();
         } else {
           const text = await res.text();
-          console.warn("Non-JSON response:", text);
-          alert("❌ Server returned non-JSON response. Check backend logs.");
+          console.error("Non-JSON response:", text);
+          alert("❌ Unexpected server response. Check console.");
         }
-
-        fetchDocs();
       } catch (error) {
         console.error("Upload failed:", error);
-        alert("❌ Upload failed. Check your internet or try again.");
+        alert("❌ Upload failed. Check network or server.");
       }
     }
 
     async function fetchDocs() {
       try {
-        const res = await fetch('https://class-vii-exam-paper.onrender.com/view');
+        const res = await fetch(`${baseURL}/view`);
         const docs = await res.json();
         const list = document.getElementById('docList');
         list.innerHTML = '';
@@ -120,30 +74,17 @@
         });
       } catch (error) {
         console.error("Fetch error:", error);
-        alert("❌ Failed to fetch documents.");
       }
     }
 
     async function deleteDoc(id) {
       try {
-        const res = await fetch(`https://class-vii-exam-paper.onrender.com/delete/${id}`, {
-          method: 'DELETE'
-        });
-
-        const contentType = res.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          const data = await res.json();
-          alert(data.message || data.error);
-        } else {
-          const text = await res.text();
-          console.warn("Non-JSON response:", text);
-          alert("❌ Server returned non-JSON response. Check backend logs.");
-        }
-
+        const res = await fetch(`${baseURL}/delete/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        alert(data.message || data.error);
         fetchDocs();
       } catch (error) {
         console.error("Delete error:", error);
-        alert("❌ Failed to delete document.");
       }
     }
 
